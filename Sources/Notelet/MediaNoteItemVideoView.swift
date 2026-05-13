@@ -93,7 +93,11 @@ fileprivate struct AspectFillVideoPlayer: UIViewRepresentable {
 
     func makeUIView(context: Context) -> PlayerView {
         let view = PlayerView()
-        view.playerLayer.videoGravity = .resizeAspectFill
+        view.backgroundColor = .clear
+        view.isOpaque = false
+        view.playerLayer.videoGravity = .resizeAspect
+        view.playerLayer.backgroundColor = UIColor.clear.cgColor
+        view.playerLayer.isOpaque = false
         view.clipsToBounds = true
         return view
     }
