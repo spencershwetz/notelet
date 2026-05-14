@@ -11,13 +11,13 @@ struct NoteletSheetContentView: View {
     let versionNotes: [NoteletVersionNoteItem]
     let configuration: NoteletConfiguration
     
-    @State private var selectedPageID: Int? = 0
+    @State private var selectedPageID = 0
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
 
     private var currentPage: Int {
-        return selectedPageID ?? 0
+        return selectedPageID
     }
     
     private var isIPad: Bool {
@@ -38,25 +38,20 @@ struct NoteletSheetContentView: View {
         let isOnLastPage = isOnLastPage(versionNotes: versionNotes, currentPage: currentPage)
         
         NavigationStack {
-            ScrollView(.horizontal) {
-                HStack(alignment: .top, spacing: 0) {
-                    ForEach(Array(versionNotes.enumerated()), id: \.offset) { index, item in
-                        ScrollView(.vertical) {
-                            NoteItemView(
-                                item: item,
-                                isCurrent: index == currentPage,
-                                configuration: configuration
-                            )
-                            .id(index)
-                        }
-                        .contentMargins(.bottom, 80)
+            TabView(selection: $selectedPageID) {
+                ForEach(Array(versionNotes.enumerated()), id: \.offset) { index, item in
+                    ScrollView(.vertical) {
+                        NoteItemView(
+                            item: item,
+                            isCurrent: index == currentPage,
+                            configuration: configuration
+                        )
+                        .padding(.bottom, 80)
                     }
+                    .tag(index)
                 }
-                .scrollTargetLayout()
             }
-            .scrollTargetBehavior(.paging)
-            .scrollIndicators(.hidden)
-            .scrollPosition(id: $selectedPageID)
+            .tabViewStyle(.page(indexDisplayMode: .never))
         }
         .modifier(
             SafeAreaView {
@@ -80,7 +75,7 @@ struct NoteletSheetContentView: View {
                             if isOnLastPage {
                                 onDoneTap()
                             } else {
-                                withAnimation(.smooth) {
+                                withAnimation(.easeInOut(duration: 0.25)) {
                                     selectedPageID = min(currentPage + 1, versionNotes.count - 1)
                                 }
                             }
@@ -100,14 +95,14 @@ struct NoteletSheetContentView: View {
                         .tint(configuration.accentColor)
                     }
                 }
-                .safeAreaPadding(.bottom, isIPad ? 24 : 0)
+                .padding(.bottom, isIPad ? 24 : 0)
             }
         )
         .presentationDetents([
             isIPad ? .large : .fraction(0.85)
         ])
         .presentationDragIndicator(.visible)
-        .presentationBackground(sheetBackgroundStyle)
+        .noteletPresentationBackground(sheetBackgroundStyle)
     }
     
     private func onDoneTap() {
@@ -120,5 +115,16 @@ struct NoteletSheetContentView: View {
         }
 
         return currentPage >= versionNotes.count - 1
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func noteletPresentationBackground(_ style: AnyShapeStyle) -> some View {
+        if #available(iOS 16.4, *) {
+            presentationBackground(style)
+        } else {
+            self
+        }
     }
 }

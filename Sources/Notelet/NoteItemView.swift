@@ -12,8 +12,6 @@ struct NoteItemView: View {
     let isCurrent: Bool
     let configuration: NoteletConfiguration
     
-    @State private var containerSize: CGSize = .zero
-    
     private var clipShapeRadius: Double {
         if #available(iOS 26, *) {
             24
@@ -23,18 +21,20 @@ struct NoteItemView: View {
     }
     
     var body: some View {
+        GeometryReader { proxy in
+            itemContent(containerWidth: min(max(proxy.size.width, 300), 440))
+                .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
+        }
+        .frame(maxWidth: .infinity, minHeight: 520, alignment: .top)
+    }
+
+    @ViewBuilder
+    private func itemContent(containerWidth: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             switch item {
             case .media(let mediaKind, let url, let title, let description):
                 VStack(alignment: .center, spacing: 12) {
                     let mediaPadding = 16.0
-                    /**
-                     * 440 points is the largets iPhone width right now.
-                     * Clamping to that width so the media fits perfectly on
-                     * any iPhone and don't streatch to the full width on
-                     * iPads and iPhones in landscape orientation.
-                     */
-                    let containerWidth = min(max(containerSize.width, 300), 440)
                     
                     ZStack {
                         switch mediaKind {
@@ -71,12 +71,6 @@ struct NoteItemView: View {
                     accentColor: configuration.accentColor
                 )
             }
-        }
-        .containerRelativeFrame(.horizontal, alignment: .center)
-        .onGeometryChange(for: CGSize.self) { proxy in
-            proxy.size
-        } action: { newSize in
-            containerSize = newSize
         }
     }
 }

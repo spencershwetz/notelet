@@ -30,7 +30,7 @@ struct MediaNoteItemVideoView: View {
         .task(id: videoURL) {
             await prepareVideo()
         }
-        .onChange(of: isPlaying) {
+        .onChange(of: isPlaying) { _ in
             updatePlaybackState()
         }
         .onDisappear {

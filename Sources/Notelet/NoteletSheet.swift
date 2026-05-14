@@ -70,7 +70,7 @@ struct NoteletSheet: ViewModifier {
             .onAppear {
                 isPresented = shouldPresent
             }
-            .onChange(of: version) {
+            .onChange(of: version) { _ in
                 isPresented = shouldPresent
             }
             .sheet(isPresented: $isPresented, onDismiss: handleDismiss) {
