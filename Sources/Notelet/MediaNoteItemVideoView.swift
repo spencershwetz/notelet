@@ -13,8 +13,7 @@ struct MediaNoteItemVideoView: View {
     let videoURL: URL
     let isPlaying: Bool
     
-    @State private var player: AVQueuePlayer?
-    @State private var playerLooper: AVPlayerLooper?
+    @State private var player: AVPlayer?
     @State private var videoStatusObserver: NSKeyValueObservation?
     @State private var videoEndObserver: NSObjectProtocol?
     @State private var isVideoLoading: Bool = true
@@ -60,12 +59,13 @@ struct MediaNoteItemVideoView: View {
 
         playerItem.preferredForwardBufferDuration = 2.0
 
-        let queuePlayer = AVQueuePlayer(playerItem: playerItem)
-        queuePlayer.automaticallyWaitsToMinimizeStalling = true
+        let videoPlayer = AVPlayer(playerItem: playerItem)
+        videoPlayer.automaticallyWaitsToMinimizeStalling = true
+        videoPlayer.actionAtItemEnd = .none
 
-        videoStatusObserver = queuePlayer.observe(\.currentItem?.status, options: [.initial, .new]) { observedPlayer, _ in
+        videoStatusObserver = playerItem.observe(\.status, options: [.initial, .new]) { observedItem, _ in
             Task { @MainActor in
-                switch observedPlayer.currentItem?.status {
+                switch observedItem.status {
                 case .readyToPlay, .failed:
                     isVideoLoading = false
                 default:
@@ -74,17 +74,16 @@ struct MediaNoteItemVideoView: View {
             }
         }
 
-        player = queuePlayer
-        playerLooper = AVPlayerLooper(player: queuePlayer, templateItem: playerItem)
+        player = videoPlayer
         videoEndObserver = NotificationCenter.default.addObserver(
             forName: .AVPlayerItemDidPlayToEndTime,
             object: playerItem,
             queue: .main
         ) { _ in
             Task { @MainActor in
-                queuePlayer.seek(to: .zero)
+                videoPlayer.seek(to: .zero)
                 if isPlaying {
-                    queuePlayer.play()
+                    videoPlayer.play()
                 }
             }
         }
@@ -94,7 +93,7 @@ struct MediaNoteItemVideoView: View {
 
     private func updatePlaybackState() {
         if isPlaying {
-            guard let player else {
+            guard let player, player.currentItem != nil else {
                 Task {
                     await prepareVideo()
                 }
