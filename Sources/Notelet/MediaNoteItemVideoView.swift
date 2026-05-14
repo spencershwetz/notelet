@@ -16,6 +16,7 @@ struct MediaNoteItemVideoView: View {
     @State private var player: AVQueuePlayer?
     @State private var playerLooper: AVPlayerLooper?
     @State private var videoStatusObserver: NSKeyValueObservation?
+    @State private var videoEndObserver: NSObjectProtocol?
     @State private var isVideoLoading: Bool = true
     
     var body: some View {
@@ -36,6 +37,10 @@ struct MediaNoteItemVideoView: View {
         .onDisappear {
             videoStatusObserver?.invalidate()
             videoStatusObserver = nil
+            if let videoEndObserver {
+                NotificationCenter.default.removeObserver(videoEndObserver)
+                self.videoEndObserver = nil
+            }
             player?.pause()
         }
     }
@@ -43,6 +48,10 @@ struct MediaNoteItemVideoView: View {
     private func prepareVideo() async {
         videoStatusObserver?.invalidate()
         videoStatusObserver = nil
+        if let videoEndObserver {
+            NotificationCenter.default.removeObserver(videoEndObserver)
+            self.videoEndObserver = nil
+        }
 
         isVideoLoading = true
 
@@ -67,13 +76,38 @@ struct MediaNoteItemVideoView: View {
 
         player = queuePlayer
         playerLooper = AVPlayerLooper(player: queuePlayer, templateItem: playerItem)
+        videoEndObserver = NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime,
+            object: playerItem,
+            queue: .main
+        ) { _ in
+            Task { @MainActor in
+                queuePlayer.seek(to: .zero)
+                if isPlaying {
+                    queuePlayer.play()
+                }
+            }
+        }
 
         updatePlaybackState()
     }
 
     private func updatePlaybackState() {
         if isPlaying {
-            player?.play()
+            guard let player else {
+                Task {
+                    await prepareVideo()
+                }
+                return
+            }
+
+            if let item = player.currentItem,
+               item.duration.isNumeric,
+               player.currentTime() >= item.duration {
+                player.seek(to: .zero)
+            }
+
+            player.play()
         } else {
             player?.pause()
         }
