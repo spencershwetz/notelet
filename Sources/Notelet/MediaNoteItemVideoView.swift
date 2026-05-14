@@ -33,7 +33,7 @@ struct MediaNoteItemVideoView: View {
         }
         .onChange(of: isPlaying) { newValue in
             videoLog("isPlaying changed -> \(newValue) \(playerStateDescription())")
-            updatePlaybackState()
+            updatePlaybackState(shouldPlay: newValue)
         }
         .onDisappear {
             videoLog("onDisappear \(playerStateDescription())")
@@ -98,11 +98,11 @@ struct MediaNoteItemVideoView: View {
         }
 
         videoLog("prepare complete \(playerStateDescription())")
-        updatePlaybackState()
+        updatePlaybackState(shouldPlay: isPlaying)
     }
 
-    private func updatePlaybackState() {
-        if isPlaying {
+    private func updatePlaybackState(shouldPlay: Bool) {
+        if shouldPlay {
             guard let player, player.currentItem != nil else {
                 videoLog("play requested without player/currentItem; preparing")
                 Task {
