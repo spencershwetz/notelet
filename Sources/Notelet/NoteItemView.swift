@@ -35,6 +35,10 @@ struct NoteItemView: View {
             case .media(let mediaKind, let url, let title, let description):
                 VStack(alignment: .center, spacing: 12) {
                     let mediaPadding = 16.0
+                    let mediaSide = max(
+                        180,
+                        (containerWidth - mediaPadding * 2) * configuration.mediaScale
+                    )
                     
                     ZStack {
                         switch mediaKind {
@@ -50,8 +54,8 @@ struct NoteItemView: View {
                         }
                     }
                     .frame(
-                        width: containerWidth - mediaPadding * 2,
-                        height: containerWidth - mediaPadding * 2
+                        width: mediaSide,
+                        height: mediaSide
                     )
                     .clipShape(.rect(cornerRadius: clipShapeRadius))
                     .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 0)

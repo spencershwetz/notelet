@@ -49,14 +49,17 @@ public struct NoteletConfiguration {
     let nextButtonLabel: LocalizedStringResource
     let doneButtonLabel: LocalizedStringResource
     let accentColor: Color
+    let mediaScale: CGFloat
     
     public init(
         nextButtonLabel: LocalizedStringResource = "Next",
         doneButtonLabel: LocalizedStringResource = "Done",
-        accentColor: Color = .blue
+        accentColor: Color = .blue,
+        mediaScale: CGFloat = 1
     ) {
         self.nextButtonLabel = nextButtonLabel
         self.doneButtonLabel = doneButtonLabel
         self.accentColor = accentColor
+        self.mediaScale = mediaScale
     }
 }
