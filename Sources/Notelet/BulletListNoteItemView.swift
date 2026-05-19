@@ -17,6 +17,8 @@ struct BulletListNoteItemView: View {
             Text(title)
                 .font(.title)
                 .fontWeight(.bold)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, alignment: .center)
             
             VStack(alignment: .leading, spacing: 32) {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
