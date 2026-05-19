@@ -31,11 +31,18 @@ struct BulletListNoteItemView: View {
                             Text(row.title)
                                 .font(.body.weight(.semibold))
                                 .foregroundStyle(.primary)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
                             Text(row.description)
                                 .font(.body)
                                 .foregroundStyle(.secondary)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         }
