@@ -9,9 +9,10 @@ import SwiftUI
 
 struct NoteletSheet: ViewModifier {
     @State private var isPresented = false
+    @State private var sheetWasPresented = false
 
     let notes: [NoteletVersionNotes]
-    let version: NoteletPresentedVersion?
+    @Binding var version: NoteletPresentedVersion?
     let onDismiss: () -> Void
     let configuration: NoteletConfiguration
 
@@ -68,10 +69,10 @@ struct NoteletSheet: ViewModifier {
     func body(content: Content) -> some View {
         content
             .onAppear {
-                isPresented = shouldPresent
+                syncPresentationState()
             }
             .onChange(of: version) { _ in
-                isPresented = shouldPresent
+                syncPresentationState()
             }
             .sheet(isPresented: $isPresented, onDismiss: handleDismiss) {
                 NoteletSheetContentView(
@@ -81,11 +82,22 @@ struct NoteletSheet: ViewModifier {
             }
     }
     
+    private func syncPresentationState() {
+        let willPresent = shouldPresent
+        if willPresent {
+            sheetWasPresented = true
+        }
+        isPresented = willPresent
+    }
+
     private func handleDismiss() {
+        guard sheetWasPresented else { return }
+        sheetWasPresented = false
+
         if isCurrentVersionMode {
             NoteletStorage.markCurrentVersionAsSeen()
         }
-        
+
         onDismiss()
     }
 }
@@ -93,7 +105,7 @@ struct NoteletSheet: ViewModifier {
 extension View {
     public func noteletSheet(
         notes: [NoteletVersionNotes],
-        version: NoteletPresentedVersion? = nil,
+        version: Binding<NoteletPresentedVersion?>,
         onDismiss: @escaping () -> Void = { },
         configuration: NoteletConfiguration = .init()
     ) -> some View {
